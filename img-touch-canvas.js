@@ -17,9 +17,6 @@ This code may be freely distributed under the MIT License
             throw 'ImgZoom constructor: missing arguments canvas or path';
         }
 
-        this.scope = options.scope;
-        this.photoService = options.photoService;
-        this.location = options.location;
         this.canvas         = options.canvas;
         this.canvas.width   = this.canvas.clientWidth;
         this.canvas.height  = this.canvas.clientHeight;
@@ -41,7 +38,6 @@ This code may be freely distributed under the MIT License
         this.lastZoomScale = null;
         this.lastX = null;
         this.lastY = null;
-        this.selection = null;
 
         this.mdown = false; //desktop drag
 
@@ -50,79 +46,8 @@ This code may be freely distributed under the MIT License
         requestAnimationFrame(this.animate.bind(this));
 
         this.setEventListeners();
-    //    var selection = this.selection;
     };
 
-    // define Selection constructor
-    function Selection(x, y, w, h){
-        this.x = x; // initial positions
-        this.y = y;
-        this.w = w; // and size
-        this.h = h;
-
-        this.px = x; // extra variables to dragging calculations
-        this.py = y;
-
-        this.csize = 6; // resize cubes size
-        this.csizeh = 10; // resize cubes size (on hover)
-
-        this.bHow = [false, false, false, false]; // hover statuses
-        this.iCSize = [this.csize, this.csize, this.csize, this.csize]; // resize cubes sizes
-        this.bDrag = [false, false, false, false]; // drag statuses
-        this.bDragAll = false; // drag whole selection
-        this.maskCanvas = document.createElement('canvas');
-    }
-
-    // define Selection draw method
-    Selection.prototype.draw = function(ctx, image, scale, canvas){
-
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.x, this.y, this.w, this.h);
-
-        //ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-        //ctx.fillRect(this.x, this.y, this.w, this.h);
-
-        // draw part of original image
-        if (this.w > 0 && this.h > 0) {
-
-            //ctx.drawImage(image, this.x, this.y, this.w, this.h, this.x, this.y, this.w * scale.x, this.h * scale.y);
-        }
-        /*ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvas.getWidth(), this.y);
-        ctx.fillRect(0, this.y, this.x, this.h);
-        ctx.fillRect(this.x, this.y, canvas.getWidth(), this.h);
-        ctx.fillRect(0, this.h, canvas.getWidth(), canvas.getHeight());*/
-        // Create a canvas that we will use as a mask
-        maskCanvas = this.maskCanvas;
-        // Ensure same dimensions
-        maskCanvas.width = canvas.width;
-        maskCanvas.height = canvas.height;
-        var maskCtx = maskCanvas.getContext('2d');
-
-        // This color is the one of the filled shape
-        //maskCtx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        // Fill the mask
-        //maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
-        // Set xor operation
-        //maskCtx.globalCompositeOperation = 'xor';
-        // Draw the shape you want to take out
-        maskCtx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        maskCtx.fillRect(0, 0, (maskCanvas.width - 200)/2, maskCanvas.height);
-        maskCtx.fillRect(this.x, this.y + this.h, this.w, (maskCanvas.height - this.h)/2);
-        maskCtx.fillRect(this.x, this.y - (maskCanvas.height - this.h)/2, this.w, (maskCanvas.height-200)/2);
-        maskCtx.fillRect(this.x + this.w, this.y - (maskCanvas.height - this.h)/2, (maskCanvas.height-this.h)/2, maskCanvas.height);
- //       maskCtx.fillRect(0, this.h, maskCanvas.width, maskCanvas.height);
-        //maskCtx.fillRect(this.x, this.y, this.w, this.h);
-        maskCtx.fill();
-        // draw resize cubes
-        /*ctx.fillStyle = '#fff';
-        ctx.fillRect(this.x - this.iCSize[0], this.y - this.iCSize[0], this.iCSize[0] * 2, this.iCSize[0] * 2);
-        ctx.fillRect(this.x + this.w - this.iCSize[1], this.y - this.iCSize[1], this.iCSize[1] * 2, this.iCSize[1] * 2);
-        ctx.fillRect(this.x + this.w - this.iCSize[2], this.y + this.h - this.iCSize[2], this.iCSize[2] * 2, this.iCSize[2] * 2);
-        ctx.fillRect(this.x - this.iCSize[3], this.y + this.h - this.iCSize[3], this.iCSize[3] * 2, this.iCSize[3] * 2);
-        */
-    };
 
     ImgTouchCanvas.prototype = {
         animate: function() {
@@ -139,67 +64,18 @@ This code may be freely distributed under the MIT License
 
                     this.scale.x = scaleRatio;
                     this.scale.y = scaleRatio;
+                    this.init = true;
                 }
-                  this.selection = new Selection((this.canvas.clientWidth - 200)/2, (this.canvas.clientHeight -200)/2, 200, 200);
-                var selection = this.selection;
-                this.photoService.selection = this.selection;
-
-                this.photoService.scale = this.scale;
-                var imgTexture = this.imgTexture;
-                var scale = this.scale;
-                var scope = this.scope;
-                var canvas = this.canvas;
-                
-                /*$("#btn-crop").on('click', function(e){
-                  console.log('click');
-                  var temp_ctx, temp_canvas;
-                  var theSelection = selection;
-                  temp_canvas = document.createElement('canvas');
-                  temp_ctx = temp_canvas.getContext('2d');
-                  temp_canvas.width = theSelection.w;
-                  temp_canvas.height = theSelection.h;
-                  //var imageData = temp_ctx.getImageData(theSelection.x, theSelection.y, theSelection.w, theSelection.h);
-                  var img = new Image();
-                  img.src = canvas.toDataURL();
-                  //img.src = canvas.toDataURL();
-                  img.onload = function() {
-                    temp_ctx.drawImage(img, theSelection.x, theSelection.y, theSelection.w, theSelection.h, 0, 0, theSelection.w * scale.x, theSelection.h * scale.y);
-                  console.log(canvas);
-                    var vData = temp_canvas.toDataURL();
-                    //console.log(imageData);
-                    scope.$apply(function(){scope.resultSrc = vData;});
-                    //photoService.setImage(vData);
-                  };
-                  
-                 // $('#crop_result').attr('src', vData);
-                });*/
-                this.selection.draw(this.context, this.imgTexture, this.scale, this.canvas);
-                this.init=true;
             }
 
-            //this.context.fillStyle = 'rgba(255, 255, 255, 1)';
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.canvas.style.opacity = 0.99;
-            var canvas1 = this.canvas;
-            setTimeout(function() {
-              canvas1.style.opacity = 1;
-            }, 1);
-  //console.log("clearing");
+
             this.context.drawImage(
                 this.imgTexture, 
                 this.position.x, this.position.y, 
                 this.scale.x * this.imgTexture.width, 
                 this.scale.y * this.imgTexture.height);
 
-           /*this.context.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            this.context.fillRect(this.position.x, this.position.y, 
-                this.scale.x * this.imgTexture.width, 
-                this.scale.y * this.imgTexture.height);*/
-//                   console.log((this.canvas.clientWidth - 200)/2);
- //                  console.log((this.canvas.clientHeight - 200)/2);
-                   
-                 // this.selection.draw(this.context, this.imgTexture, this.scale, this.canvas);
-        this.context.drawImage(this.selection.maskCanvas, 0, 0);
             requestAnimationFrame(this.animate.bind(this));
         },
 
@@ -224,10 +100,11 @@ This code may be freely distributed under the MIT License
 
         doZoom: function(zoom) {
             if(!zoom) return;
+
             //new scale
             var currentScale = this.scale.x;
             var newScale = this.scale.x + zoom/100;
-           
+            
 
             //some helpers
             var deltaScale = newScale - currentScale;
@@ -235,9 +112,7 @@ This code may be freely distributed under the MIT License
             var currentHeight   = (this.imgTexture.height * this.scale.y);
             var deltaWidth  = this.imgTexture.width*deltaScale;
             var deltaHeight = this.imgTexture.height*deltaScale;
-            //console.log(deltaScale + " deltaScale");
-            //console.log(currentWidth+ " currentWidth");
-            //console.log(deltaWidth + " deltaWidth");
+
 
             //by default scale doesnt change position and only add/remove pixel to right and bottom
             //so we must move the image to the left to keep the image centered
@@ -250,21 +125,18 @@ This code may be freely distributed under the MIT License
             var coefY = -yonmap / (currentHeight);
             var newPosX = this.position.x + deltaWidth*coefX;
             var newPosY = this.position.y + deltaHeight*coefY;
-            
-            //console.log(this.scale.x + " this.scale.x");
-            //console.log(deltaHeight + " delta height");
+
             //edges cases
             var newWidth = currentWidth + deltaWidth;
             var newHeight = currentHeight + deltaHeight;
             
-            if( newWidth < this.selection.w ) return;
-            /*if( newPosX > 0 ) { newPosX = 0; }
+            if( newWidth < this.canvas.clientWidth ) return;
+            if( newPosX > 0 ) { newPosX = 0; }
             if( newPosX + newWidth < this.canvas.clientWidth ) { newPosX = this.canvas.clientWidth - newWidth;}
-            */
-            if( newHeight < this.selection.h ) return;
-            /*if( newPosY > 0 ) { newPosY = 0; }
+            
+            if( newHeight < this.canvas.clientHeight ) return;
+            if( newPosY > 0 ) { newPosY = 0; }
             if( newPosY + newHeight < this.canvas.clientHeight ) { newPosY = this.canvas.clientHeight - newHeight; }
-            */
 
 
             //finally affectations
@@ -286,18 +158,18 @@ This code may be freely distributed under the MIT License
 
 
               //edge cases
-              /*if( this.position.x > 0 ) {
+              if( this.position.x > 0 ) {
                 this.position.x = 0;
               }
               else if( this.position.x + currentWidth < this.canvas.clientWidth ) {
                 this.position.x = this.canvas.clientWidth - currentWidth;
-              }*/
-              /*if( this.position.y > 0 ) {
+              }
+              if( this.position.y > 0 ) {
                 this.position.y = 0;
               }
               else if( this.position.y + currentHeight < this.canvas.clientHeight ) {
                 this.position.y = this.canvas.clientHeight - currentHeight;
-              }*/
+              }
             }
 
             this.lastX = relativeX;
@@ -388,5 +260,6 @@ This code may be freely distributed under the MIT License
             }
         }
     };
+
     root.ImgTouchCanvas = ImgTouchCanvas;
 }).call(this);
