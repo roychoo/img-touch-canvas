@@ -196,11 +196,14 @@ This code may be freely distributed under the MIT License
 
             //this.context.fillStyle = 'rgba(255, 255, 255, 1)';
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.canvas.style.display = 'none';// Detach from DOM
+            this.canvas.offsetHeight; // Force the detach
+            this.canvas.style.display = 'inherit'; // Reattach to DOM
             this.canvas.style.opacity = 0.99;
-            var canvas1 = this.canvas;
+            /*var canvas1 = this.canvas;
             setTimeout(function() {
               canvas1.style.opacity = 1;
-            }, 1);
+            }, 1);*/
   //console.log("clearing");
             this.context.drawImage(
                 this.imgTexture, 
